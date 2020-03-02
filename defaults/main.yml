@@ -1,0 +1,11 @@
+---
+
+swift_objects_package_state: present # latest
+cache_timeout: 600
+
+swift_objects_oci_repo_container: containers
+swift_objects_packages_container: packages
+swift_objects_binaries_container: binaries
+
+# See skopeo(1) section "IMAGE NAMES" for the expected format
+swift_objects_oci_repo_transport: containers-storage

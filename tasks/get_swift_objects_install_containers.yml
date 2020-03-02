@@ -1,0 +1,27 @@
+---
+
+- name: Install | Get OCI images
+  with_items: "{{ containers_list }}"
+  command: >
+    swift download \
+    --output-dir=/tmp/containers \
+    {{ swift_objects_containers_container }}
+
+- name: Install | Copy images using skopeo
+  with_items: "{{ containers_list }}"
+  args:
+    chdir: /tmp/containers
+  shell: |
+    for tag in $(cat /tmp/{{ item }}/index.json \
+        | jq '.manifests[] | .annotations | ."org.opencontainers.image.ref.name"' \
+        | awk '{gsub("\"","");print}') ; do
+
+        if echo $tag | grep -v null ; then
+            skopeo copy \
+                oci:{{ item }}:$tag \
+                {{ swift_objects_oci_repo_transport }}:{{ item }}:$tag
+        fi
+    done
+
+- name: Install | Local OCI images cleanup
+  file: path=/tmp/containers state=absent

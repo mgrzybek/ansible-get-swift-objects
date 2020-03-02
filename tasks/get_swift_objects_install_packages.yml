@@ -1,0 +1,25 @@
+---
+
+- name: Install | Get packages
+  register: result_packages
+  shell: >
+      swift download \
+         --output-dir=/tmp/packages \
+         {{ swift_objects_packages_container }} \
+      | awk '{print $1}'
+
+#- name: Install | Install swift packages
+#  apt:
+#    deb: "{{ result_packages.stdout_lines }}"
+#    state: present
+
+- name: Install | Install swift packages
+  when: ansible_pkg_mgr == 'apt'
+  command: apt -y install {{ result_packages.stdout_lines | join(' ') }}
+
+- name: Install | Install swift packages
+  when: ansible_pkg_mgr == 'rpm'
+  command: yum -y install {{ result_packages.stdout_lines | join(' ') }}
+
+- name: Install | Cleanup
+  file: path=/tmp/packages state=absent

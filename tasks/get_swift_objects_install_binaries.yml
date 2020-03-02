@@ -1,0 +1,25 @@
+---
+
+- name: Install | Get binary {{ item }}
+  command: >
+      swift download \
+          --output=/tmp/{{ item }} \
+          {{ swift_objects_binaries_container }} {{ item }}
+
+- name: Install | Get file stats
+  register: stat_result
+  stat: path=/tmp/{{ item }}
+
+- name: Install | Unarchive the artifact
+  when: stat_result.stat.mimetype is search('zip')
+  unarchive:
+    dest: /usr/local/bin/
+    src: "/tmp/{{ item }}"
+    mode: 0755
+
+- name: Install | Copy the artifact
+  when: stat_result.stat.mimetype is search('executable')
+  copy: src=/tmp/{{ item }} dest=/usr/local/bin/ mode=0755
+
+- name: Install | Cleanup
+  file: path=/tmp/{{ item }} state=absent

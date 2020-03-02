@@ -1,0 +1,61 @@
+---
+
+- name: Pre-install | Check swift tool
+  command: swift list
+
+- name: Pre-install | Set local facts
+  set_fact:
+    get_packages: false
+    get_binaries: false
+    get_containers: false
+
+- name: Pre-install | Get packages list
+  when:
+    - swift_objects_packages_container is defined
+    - swift_objects_packages_container != None
+    - swift_objects_packages_container | length > 0
+  block:
+    - name: Pre-install | swift list
+      register: swift_result
+      shell: swift list {{ swift_objects_packages_container }} || true
+
+    - name: Pre-install | Set local fact
+      when: swift_result.stdout_lines | length > 0
+      set_fact:
+        get_packages: true
+        packages_list: "{{ swift_result.stdout_lines }}"
+
+- name: Pre-install | Get binaries list
+  when:
+    - swift_objects_binaries_container is defined
+    - swift_objects_binaries_container != None
+    - swift_objects_binaries_container | length > 0
+  block:
+    - name: Pre-install | swift list
+      register: swift_result
+      shell: swift list {{ swift_objects_binaries_container }} || true
+
+    - name: Pre-install | Set local fact
+      when: swift_result.stdout_lines | length > 0
+      set_fact:
+        get_binaries: true
+        binaries_list: "{{ swift_result.stdout_lines }}"
+
+- name: Pre-install | Get containers list
+  when:
+    - swift_objects_containers_container is defined
+    - swift_objects_containers_container != None
+    - swift_objects_containers_container | length > 0
+  block:
+    - name: Pre-install | swift list
+      register: swift_result
+      shell: >
+        swift list {{ swift_objects_containers_container }} \
+        | awk -F/ '{print $1}' \
+        | sort -u
+
+    - name: Pre-install | Set local fact
+      when: swift_result.stdout_lines | length > 0
+      set_fact:
+        get_containers: true
+        containers_list: "{{ swift_result.stdout_lines }}"

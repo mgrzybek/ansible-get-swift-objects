@@ -1,0 +1,36 @@
+---
+# tasks file for ansible-get-swift-objects
+
+- name: Variables by OS
+  include_vars: "{{ item }}"
+  tags: always
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+
+- import_tasks: get_swift_objects_pre_install.yml
+  tags:
+    - get_swift_objects-pre-install
+
+- include_tasks: get_swift_objects_install_binaries.yml
+  with_items: "{{ binaries_list }}"
+  when: get_binaries | lower == 'true'
+  tags:
+    - get_swift_objects-install
+
+- import_tasks: get_swift_objects_install_packages.yml
+  when: get_packages | lower == 'true'
+  tags:
+    - get_swift_objects-install
+
+- import_tasks: get_swift_objects_install_containers.yml
+  when: get_containers | lower == 'true'
+  tags:
+    - get_swift_objects-install
+
+- import_tasks: get_swift_objects_post_install.yml
+  tags:
+    - get_swift_objects-post-install
