@@ -15,11 +15,11 @@
     - swift_objects_packages_container != None
     - swift_objects_packages_container | length > 0
   block:
-    - name: Pre-install | swift list
+    - name: Pre-install | Packages - swift list
       register: swift_result
       shell: swift list {{ swift_objects_packages_container }} || true
 
-    - name: Pre-install | Set local fact
+    - name: Pre-install | Packages - Set local fact
       when: swift_result.stdout_lines | length > 0
       set_fact:
         get_packages: true
@@ -31,11 +31,11 @@
     - swift_objects_binaries_container != None
     - swift_objects_binaries_container | length > 0
   block:
-    - name: Pre-install | swift list
+    - name: Pre-install | Binaries - swift list
       register: swift_result
       shell: swift list {{ swift_objects_binaries_container }} || true
 
-    - name: Pre-install | Set local fact
+    - name: Pre-install | Binaries - Set local fact
       when: swift_result.stdout_lines | length > 0
       set_fact:
         get_binaries: true
@@ -47,14 +47,14 @@
     - swift_objects_oci_repo_container != None
     - swift_objects_oci_repo_container | length > 0
   block:
-    - name: Pre-install | swift list
+    - name: Pre-install | Containers - swift list
       register: swift_result
       shell: >
         swift list {{ swift_objects_oci_repo_container }} \
         | awk -F/ '{print $1}' \
         | sort -u
 
-    - name: Pre-install | Set local fact
+    - name: Pre-install | Containers - Set local fact
       when: swift_result.stdout_lines | length > 0
       set_fact:
         get_containers: true
