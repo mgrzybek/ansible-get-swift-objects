@@ -5,7 +5,7 @@
   command: >
     swift download \
     --output-dir=/tmp/containers \
-    {{ swift_objects_containers_container }}
+    {{ swift_objects_oci_repo_container }}
 
 - name: Install | Copy images using skopeo
   with_items: "{{ containers_list }}"

@@ -43,14 +43,14 @@
 
 - name: Pre-install | Get containers list
   when:
-    - swift_objects_containers_container is defined
-    - swift_objects_containers_container != None
-    - swift_objects_containers_container | length > 0
+    - swift_objects_oci_repo_container is defined
+    - swift_objects_oci_repo_container != None
+    - swift_objects_oci_repo_container | length > 0
   block:
     - name: Pre-install | swift list
       register: swift_result
       shell: >
-        swift list {{ swift_objects_containers_container }} \
+        swift list {{ swift_objects_oci_repo_container }} \
         | awk -F/ '{print $1}' \
         | sort -u
 
