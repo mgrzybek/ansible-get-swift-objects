@@ -15,6 +15,10 @@
   tags:
     - get_swift_objects-pre-install
 
+- include_tasks: get_swift_objects_install.yml
+  tags:
+    - get_swift_objects-install
+
 - include_tasks: get_swift_objects_install_binaries.yml
   with_items: "{{ binaries_list }}"
   when: get_binaries | lower == 'true'

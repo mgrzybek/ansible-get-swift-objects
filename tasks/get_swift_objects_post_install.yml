@@ -1,1 +1,6 @@
 ---
+
+- name: Remove temporary directories
+  file: path={{ item }} state=absent
+  with_items:
+    - /tmp/containers

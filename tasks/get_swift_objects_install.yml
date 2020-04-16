@@ -14,3 +14,7 @@
     - install-apt
     - install-yum
     - install-zypper
+
+- name: Create /tmp/containers
+  when: get_containers | lower == 'true'
+  file: path=/tmp/containers state=directory
