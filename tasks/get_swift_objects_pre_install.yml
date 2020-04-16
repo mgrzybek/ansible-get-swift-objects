@@ -51,8 +51,7 @@
       register: swift_result
       shell: >
         swift list {{ swift_objects_oci_repo_container }} \
-        | awk -F/ '{print $1}' \
-        | sort -u
+        | awk '/index.json/ {print $1}'
 
     - name: Pre-install | Containers - Set local fact
       when: swift_result.stdout_lines | length > 0

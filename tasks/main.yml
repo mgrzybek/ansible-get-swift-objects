@@ -26,7 +26,10 @@
   tags:
     - get_swift_objects-install
 
-- import_tasks: get_swift_objects_install_containers.yml
+- debug: var=containers_list
+
+- include_tasks: get_swift_objects_install_containers.yml
+  with_items: "{{ containers_list }}"
   when: get_containers | lower == 'true'
   tags:
     - get_swift_objects-install

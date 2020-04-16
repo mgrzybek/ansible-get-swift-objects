@@ -1,27 +1,56 @@
 ---
 
-- name: Install | Get OCI images
-  with_items: "{{ containers_list }}"
-  command: >
-    swift download \
-    --output-dir=/tmp/containers \
-    {{ swift_objects_oci_repo_container }}
+- debug: msg="{{ item }}"
 
-- name: Install | Copy images using skopeo
-  with_items: "{{ containers_list }}"
+- name: Install | Get image root path
+  set_fact:
+    image_root_path: "{{ item | dirname }}"
+
+- name: Install | Build files list
+  register: list_result
+  shell: >
+    swift list {{ swift_objects_oci_repo_container }} \
+    | grep ^{{ image_root_path }}
+
+- set_fact:
+    files_list: "{{ list_result.stdout_lines }}"
+    
+- name: Install | Download image
   args:
     chdir: /tmp/containers
-  shell: |
-    for tag in $(cat /tmp/{{ item }}/index.json \
-        | jq '.manifests[] | .annotations | ."org.opencontainers.image.ref.name"' \
-        | awk '{gsub("\"","");print}') ; do
+  shell: >
+    swift download {{ swift_objects_oci_repo_container }}  {{ files_list | join(' ') }}
 
-        if echo $tag | grep -v null ; then
-            skopeo copy \
-                oci:{{ item }}:$tag \
-                {{ swift_objects_oci_repo_transport }}:{{ item }}:$tag
-        fi
-    done
+- name: Install | Get image's tags
+  register: tags_result
+  args:
+    chdir: /tmp/containers
+  shell: >
+      jq -Mr \
+        '.manifests[] | .annotations | ."org.opencontainers.image.ref.name"' \
+        {{ item }}
+
+- set_fact:
+    image_tags: "{{ tags_result.stdout_lines }}"
+
+- debug: var=image_tags
+
+- name: Install | Import each tag using skopeo
+  when: tag != "null" and image_tags | length > 1 or tag == "null" and image_tags | length == 1
+  loop: "{{ image_tags }}"
+  loop_control:
+    loop_var: tag
+  args:
+    chdir: /tmp/containers
+  shell: >
+    skopeo copy \
+    {% if tag == 'null' %}
+        oci:{{ image_root_path }} \
+        {{ swift_objects_oci_repo_transport }}:{{ image_root_path }}
+    {% else %}
+        oci:{{ image_root_path }}:{{ tag }} \
+        {{ swift_objects_oci_repo_transport }}:{{ image_root_path }}:{{ tag }}
+    {% endif %}
 
 - name: Install | Local OCI images cleanup
-  file: path=/tmp/containers state=absent
+  file: path=/tmp/containers/{{ (image_root_path.split('/'))[0] }} state=absent
