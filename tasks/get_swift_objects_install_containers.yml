@@ -1,7 +1,5 @@
 ---
 
-- debug: msg="{{ item }}"
-
 - name: Install | Get image root path
   set_fact:
     image_root_path: "{{ item | dirname }}"
@@ -12,7 +10,8 @@
     swift list {{ swift_objects_oci_repo_container }} \
     | grep ^{{ image_root_path }}
 
-- set_fact:
+- name: Install | Set files_list fact
+  set_fact:
     files_list: "{{ list_result.stdout_lines }}"
     
 - name: Install | Download image
@@ -30,13 +29,12 @@
         '.manifests[] | .annotations | ."org.opencontainers.image.ref.name"' \
         {{ item }}
 
-- set_fact:
+- name: Intall | Set image_tags fact
+  set_fact:
     image_tags: "{{ tags_result.stdout_lines }}"
 
-- debug: var=image_tags
-
 - name: Install | Import each tag using skopeo
-  when: tag != "null" and image_tags | length > 1 or tag == "null" and image_tags | length == 1
+  when: tag != "null" and image_tags or tag == "null" and image_tags | length == 1
   loop: "{{ image_tags }}"
   loop_control:
     loop_var: tag
